@@ -1,4 +1,37 @@
 student_list = []
+lecturer_list = []
+
+def add_student_list(name): # Функция создания списка студента, при создании объекта\экземпляра класса Student
+    student_list.append(name)
+
+def add_lecturer_list(name): # Функция создания списка лекторов, при создании объекта\экземпляра класса Lecturer
+    lecturer_list.append(name)
+
+def average_grade_hw(list, subject): # Функция подсчёта сред.оценки всех студентов, по указаннмоу предмету(Task 4.1)
+    count = 0
+    print(f'Список средней оценки студентов по предмету {subject}:')
+    for student in list:
+        if subject in student.get('grades'):
+            count +=1
+            print(f'Имя: {student.get("name")}\n'
+                  f'Фамилия: {student.get("surname")}\n'
+                  f'Средняя оценка за {subject}: '
+                  f'{round(sum(student.get("grades")[subject])/len((student.get("grades")[subject])), 2)}\n')
+    if count == 0:
+        print('По указанному курсу оценки отсутсвуют.')
+
+def average_grade_lecturer(list, subject): # Функ. подсчёта сред.оценки за урок лектора, по указ. предмету(Task 4.1)
+    count = 0
+    print(f'Список средней оценки лекторов за урок по предмету {subject}:')
+    for lecturer in list:
+        if subject in lecturer.get('grades')[0]:
+            count +=1
+            print(f'Имя: {lecturer.get("name")}\n'
+                  f'Фамилия: {lecturer.get("surname")}\n'
+                  f'Средняя оценка за {subject}: '
+                  f'{round(sum(lecturer.get("grades")[0][subject])/len((lecturer.get("grades")[0][subject])), 2)}\n')
+    if count == 0:
+        print('По указанному курсу оценки отсутсвуют.')
 
 class Student:
     def __init__(self, name, surname,gender):
@@ -8,14 +41,15 @@ class Student:
         self.finished_courses = []
         self.courses_in_progerss = []
         self.grades = {}
+        add_student_list(self.__dict__)
 
     def add_finished_courses(self, courses):
         self.finished_courses.append(courses)
 
     # Если лектор ведёт два и более предмета, сделал что бы каждый предмет был отдельно оценён учениками.
-    # p.s. сделав это в самом начале работы над первой задачей, в дальнейшем я понял на сколько же я себе усложнил
+    # p.s. сделав это в самом начале работы над первой задачей, в дальнейшем я понял на сколько же я себе "усложнил"
     # решение дальнейших задач:)))) Но сдаваться я уже не хотел:) Это было весело :D
-    def rate_lector(self, lector, courses, grage):
+    def rate_lector(self, lector, courses, grage): # Выставление оценок Lectorer от student
         if isinstance(lector, Lecturer) \
                 and courses in lector.courses_attached \
                 and courses in self.courses_in_progerss:
@@ -26,8 +60,8 @@ class Student:
                             val.append(grage)
                 elif courses not in dict_courses_grade:
                     dict_courses_grade[courses] = [grage]
-        else:
-            print('Error in entering the grade for the lecturer.')
+        elif not isinstance(lector, Lecturer):
+            print('Объект не принадлежит классу lecturer.')
 
     def __str__(self):
         if isinstance(self, Student):
@@ -81,6 +115,7 @@ class Lecturer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)
         self.grades = [{}]
+        add_lecturer_list(self.__dict__)
 # У моих Лекторов несколько предметов и оценки по этим предметам от студентов, функция выводит результат сравнения
 # по предметам который есть у обоих лекторов. Если нету совподений по предметам, выводит обрабоку такого случая.
     def __lt__(self, other):
@@ -104,7 +139,7 @@ class Reviewer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)
 
-    def rate_hw(self, student, corses, grade):
+    def rate_hw(self, student, corses, grade): # Выставление оценок студенту
         if isinstance(student, Student) \
                 and corses in student.courses_in_progerss \
                 and corses in self.courses_attached:
@@ -117,55 +152,62 @@ class Reviewer(Mentor):
 
 
 
-# Создание студентов
+# Создание 2-ух студентов
 best_student = Student('Alexey', 'Yakovlev', 'men')
 # best_student.finished_courses += ['Git']
+best_student.courses_in_progerss += ['Git']
 best_student.courses_in_progerss += ['Python']
 best_student.courses_in_progerss += ['SQL']
+best_student.add_finished_courses('Zumba-Umba')
+best_student.add_finished_courses('Введение в программирование')
+best_student.grades['Python'] = [10]
 
 bed_student = Student('Antonio', 'Coldly', 'men')
 bed_student.courses_in_progerss += ['Git']
 
-print(best_student.__dict__)
-best_student.add_finished_courses('Zumba-Umba')
-best_student.add_finished_courses('Введение в программирование')
-best_student.grades['Python'] = [10]
-print(best_student.__dict__)
 
-
+# Создание ментора
 cool_mentor = Mentor('Many', 'Hoo')
 cool_mentor.courses_attached += ['Python']
-print(cool_mentor.__dict__)
+print(f'{cool_mentor.__dict__}\n')
 
 
+# Создание Reviewers и выставление оценок от него
 expert = Reviewer('True', 'Expert')
 expert.courses_attached += ['Python']
 expert.courses_attached += ['Git']
 expert.rate_hw(best_student, 'Python', 10)
 expert.rate_hw(best_student, 'Python', 10)
 expert.rate_hw(best_student, 'Python', 10)
+expert.rate_hw(best_student, 'Git', 8)
+expert.rate_hw(best_student, 'Git', 10)
+expert.rate_hw(best_student, 'Git', 5)
 
-
-print()
+expert.rate_hw(bed_student, 'Git', 3)
+expert.rate_hw(bed_student, 'Git', 5)
+expert.rate_hw(bed_student, 'Git', 3)
 print(expert.__dict__)
 print(best_student.__dict__)
+print(bed_student.__dict__)
 print()
 
+
+# Создание 2-ух Лекторов
 lector_one = Lecturer( 'Entony','Brock')
 lector_one.courses_attached += ['Python']
-print(lector_one.__dict__)
-print()
+# lector_one.courses_attached += ['Git']
+
 lector_two = Lecturer('Frank', 'Bisher')
 lector_two.courses_attached += ['Python']
 lector_two.courses_attached += ['Git']
-print(lector_two.__dict__)
-print()
+print(lector_one.__dict__)
+print(f'{lector_two.__dict__}\n')
 
+
+#Выставление оценок от студента => Лекторам
 best_student.rate_lector(lector_one, 'Python', 7)
 best_student.rate_lector(lector_one, 'Python', 3)
 best_student.rate_lector(lector_one, 'Git', 7)
-lector_one.courses_attached += ['Git']
-best_student.courses_in_progerss += ['Git']
 best_student.rate_lector(lector_one, 'Git', 7)
 best_student.rate_lector(lector_one, 'Python', 5)
 best_student.rate_lector(lector_one, 'Python', 8)
@@ -176,28 +218,30 @@ best_student.rate_lector(lector_two, 'Python', 8)
 best_student.rate_lector(lector_two, 'Python', 9)
 best_student.rate_lector(lector_two, 'Git', 7)
 best_student.rate_lector(lector_two, 'Git', 7)
-
-expert.rate_hw(best_student, 'Git', 8)
-expert.rate_hw(best_student, 'Git', 10)
-expert.rate_hw(best_student, 'Git', 5)
-
-expert.rate_hw(bed_student, 'Git', 3)
-expert.rate_hw(bed_student, 'Git', 5)
-expert.rate_hw(bed_student, 'Git', 3)
-
 print(lector_one.__dict__)
-print(lector_two.__dict__)
-print()
-print(best_student.__dict__)
-print(bed_student.__dict__)
+print(f'{lector_two.__dict__}\n')
 
+print(best_student.__dict__)
+print(f'{bed_student.__dict__}\n')
+
+# Task 3 output __str__
 print(lector_one)
+
 print(lector_two)
+
 print(expert)
+
 print(best_student)
 
-print(lector_one > lector_two)
+print(bed_student)
 
-print(best_student > bed_student)
+print(lector_one > lector_two) # Task 3.2 Вывод =>   Предмет: 'Результат сравнения'(True\False)
 
-print(best_student.name)
+print(best_student > bed_student) # Task 3.2 Если будет несколько предметов, выведет результ. всех совпадших предметов.
+
+
+# Task 4.1
+average_grade_hw(student_list, 'Git')
+
+# Task 4.2
+average_grade_lecturer(lecturer_list, 'Python')
